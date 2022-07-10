@@ -27,6 +27,7 @@ namespace WindowsFormsAppCamTest
 		{
 			listCamera();
 			videoCaptureDevice = new VideoCaptureDevice();
+			textBoxGenerate_TextChanged(null, null);
 		}
 
 		private void btnOpen_Click(object sender, EventArgs e)
@@ -37,8 +38,9 @@ namespace WindowsFormsAppCamTest
 				videoCaptureDevice.SignalToStop();
 				videoCaptureDevice.NewFrame -= FinalFrame_NewFrame;
 			}
-
+			
 			videoCaptureDevice = new VideoCaptureDevice(filterInfoCollection[cboCamera.SelectedIndex].MonikerString);
+
 			videoCaptureDevice.NewFrame += FinalFrame_NewFrame;
 			//videoCaptureDevice.Start();
 
@@ -50,6 +52,20 @@ namespace WindowsFormsAppCamTest
 			}
 
 			res = videoCaptureDevice.VideoCapabilities;
+		}
+
+		private void btnOpenUrl_Click(object sender, EventArgs e)
+		{
+			string url = textBoxUrl.Text;
+			
+			// load image from url and preview it in pictureBox
+			var webClient = new System.Net.WebClient().OpenRead(url);
+			if (webClient != null)
+			{
+				var image = Image.FromStream(webClient);
+				LabelResolution.Text = $@"{image.Width}x{image.Height}";
+				picCamera.Image = image;
+			}
 		}
 
 		private void VideoCaptureDevice_VideoSourceError(object sender, VideoSourceErrorEventArgs eventArgs)
@@ -122,6 +138,28 @@ namespace WindowsFormsAppCamTest
 					videoCaptureDevice.Start();
 				}
 			}
+		}
+
+		private void radioButtonCameraURl_CheckedChanged(object sender, EventArgs e)
+		{
+			if (radioButtonCamera.Checked)
+			{
+				groupBoxCamera.Enabled = true;
+				groupBoxUrl.Enabled = false;
+			}
+			else
+			{
+				groupBoxCamera.Enabled = false;
+				groupBoxUrl.Enabled = true;
+			}
+		}
+
+		private void textBoxGenerate_TextChanged(object sender, EventArgs e)
+		{
+			var auth = Convert.ToBase64String(Encoding.UTF8.GetBytes(textBoxUsername.Text + ':' + textBoxPassword.Text));
+			var url = "http://" + textBoxIp.Text + ":" + textBoxPort.Text + "/snapshot.jpg?size=-1x-1&download=yes&auth=" + auth;
+			
+			textBoxUrl.Text = url;
 		}
 	}
 }
